@@ -65,10 +65,11 @@ E=0
 for i in range(N):
     E += 1/2*masse[i]*np.linalg.norm(vitesse[i])**2 
 
-print(E)
+print('energie cinétique initiale :', E)
 
-
-# Simulation de la dynamique des particules
+###########################################################
+# Simulation de la dynamique des particules : Méthode 1 
+###########################################################
 
 for i in range(40):
 
@@ -82,13 +83,14 @@ for i in range(40):
             vitesse[i, 0] *= -1
         if X[i, 1] - rayon[i] <= 0 or X[i, 1] + rayon[i] >= L: # pareil pour l'ordonnée
             vitesse[i, 1] *= -1
+
         for j in range(i+1,N):
-            dX = X[i] - X[j]
+            dX = X[i] - X[j] 
             dist = np.linalg.norm(dX)
             dist_collision = rayon[i] + rayon[j]
 
             if dist>0 and dist<=dist_collision: # inégalité psq on aura jamais d'égalité stricte
-                print("COLLISIOOOON")
+                print("Risque de COLLISIOOOON")
                # time.sleep(3)
                 
                 vitesse_relative = vitesse[i] - vitesse[j]
@@ -109,12 +111,13 @@ for i in range(40):
                 #q = -2*vitesse_relative_normale/(1/masse[i] + 1/masse[j]) # si on utilise celle ci faut ajouter *centre_normalise dans l'ajout de la vitesse
                 vitesse[i] = vitesse[i] + (q/masse[i])
                 vitesse[j] = vitesse[j] - (q/masse[j])
+                print(f"Collision entre particules {i} et {j} à la position {X[i]} et {X[j]}")
 
                 E = 0
                 for k in range(N):
                     E += 1/2*masse[k]*np.linalg.norm(vitesse[k])**2 
-                print(E)
-
+                print('Energie cinétique après collision :', E)
+ 
     ### vérifier, y a surement des erreur dans le calcul des collisions, pour la vitesse relative noprmal etc.
 ### on perd a chaque collision de l'énergie cinétique, 
 # 
@@ -205,12 +208,13 @@ for i in range(N):
 
 # print(heapq.heappop(events))
 #@
-
-while True :
+NB_ITER = 10
+while True and NB_ITER > 0:
+    NB_ITER -= 1
     if not events:
         break  # sortir si plus d'événements
 
-    plt.pause(1.5) 
+    # plt.pause(1) 
     plt.scatter(X[:,0],X[:,1]) # position initial 
 
 
