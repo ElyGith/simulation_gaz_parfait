@@ -1,5 +1,7 @@
 # Les importations
 #@
+from multiprocessing.pool import INIT
+
 import numpy as np
 import random as rd
 import time
@@ -155,7 +157,7 @@ def collision_time(i, j):
 
     return t
 
-events = []
+
 
 
 def collision_time_mur(i):
@@ -191,24 +193,31 @@ def collision_time_mur(i):
     
     return None
        
-
+#@
 plt.scatter(X[:,0],X[:,1]) # position initial 
+events = []
 
-for i in range(N):
-    t_mur = collision_time_mur(i)
-    if t_mur is not None:
-        heapq.heappush(events, (t_mur, (i, None)))
-    for j in range(i+1,N):
-                    t = collision_time(i, j)
+def init_events():
 
-                    if t is not None:
-                        print(f"Collision entre particules {i} et {j} dans {t:.2f} secondes.")
-                        heapq.heappush(events, (t, (i, j)))
+    # Initialisation des événements de collision
+    for i in range(N):
+        t_mur = collision_time_mur(i)
+        if t_mur is not None:
+            heapq.heappush(events, (t_mur, (i, None)))
+        for j in range(i+1,N):
+                        t = collision_time(i, j)
 
+                        if t is not None:
+                            print(f"Collision entre particules {i} et {j} dans {t:.2f} secondes.")
+                            heapq.heappush(events, (t, (i, j)))
+    return events
+
+init_events()
 
 # print(heapq.heappop(events))
 #@
-NB_ITER = 10
+NB_ITER = 15
+INIT = False
 while True and NB_ITER > 0:
     NB_ITER -= 1
     if not events:
@@ -231,35 +240,41 @@ while True and NB_ITER > 0:
     else:  # collision entre particules
         collision(a, b)
 
+#### Revoir cette partie
+    if INIT == True : 
+        for j in range(N):
+            if j == a or j == b:
+                continue  # éviter de reprogrammer la collision actuelle
 
-    for j in range(N):
-        if j == a or j == b:
-            continue  # éviter de reprogrammer la collision actuelle
+            if b is None:
+                collision_time_mur_a = collision_time_mur(a)
+                if collision_time_mur_a is not None and collision_time_mur_a > 1e-10:
+                    heapq.heappush(events, (collision_time_mur_a, (a, None)))
+                    
+            else:
 
-        if b is None:
-            collision_time_mur_a = collision_time_mur(a)
-            if collision_time_mur_a is not None and collision_time_mur_a > 1e-10:
-                heapq.heappush(events, (collision_time_mur_a, (a, None)))
-        else:
+                ta = collision_time(a, j)
+                tb = collision_time(b, j)
 
-            ta = collision_time(a, j)
-            tb = collision_time(b, j)
+                collision_time_mur_a = collision_time_mur(a)
+                collision_time_mur_b = collision_time_mur(b)
 
-            collision_time_mur_a = collision_time_mur(a)
-            collision_time_mur_b = collision_time_mur(b)
+                if collision_time_mur_a is not None and collision_time_mur_a > 1e-10:
+                    heapq.heappush(events, (collision_time_mur_a, (a, None)))
+                if collision_time_mur_b is not None and collision_time_mur_b > 1e-10:
+                    heapq.heappush(events, (collision_time_mur_b, (b, None)))
 
-            if collision_time_mur_a is not None and collision_time_mur_a > 1e-10:
-                heapq.heappush(events, (collision_time_mur_a, (a, None)))
-            if collision_time_mur_b is not None and collision_time_mur_b > 1e-10:
-                heapq.heappush(events, (collision_time_mur_b, (b, None)))
+                if ta is not None and ta > 1e-10:
+                    print(f"Collision entre particules {a} et {j} dans {ta:.4f} secondes.")
+                    heapq.heappush(events, (ta, (a, j)))
 
-            if ta is not None and ta > 1e-10:
-                print(f"Collision entre particules {a} et {j} dans {ta:.4f} secondes.")
-                heapq.heappush(events, (ta, (a, j)))
+                if tb is not None and tb > 1e-10:
+                    print(f"Collision entre particules {b} et {j} dans {tb:.4f} secondes.")
+                    heapq.heappush(events, (tb, (b, j)))
+    else :
+        init_events()  # réinitialiser tous les événements après une collision
 
-            if tb is not None and tb > 1e-10:
-                print(f"Collision entre particules {b} et {j} dans {tb:.4f} secondes.")
-                heapq.heappush(events, (tb, (b, j)))
+
 
 
 X[0]
